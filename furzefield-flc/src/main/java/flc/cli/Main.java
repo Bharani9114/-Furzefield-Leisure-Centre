@@ -1,5 +1,6 @@
 package flc.cli;
 
+import flc.data.DataSeeder;
 import flc.model.Booking;
 import flc.model.BookingStatus;
 import flc.model.Day;
@@ -22,6 +23,7 @@ public final class Main {
 
     public Main() {
         this.system = new FLCSystem();
+        DataSeeder.seed(system);
         this.reportGenerator = new ReportGenerator(system);
         this.scanner = new Scanner(System.in);
     }
