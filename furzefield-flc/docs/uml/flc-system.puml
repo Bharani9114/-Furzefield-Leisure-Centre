@@ -1,0 +1,186 @@
+@startuml
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam roundCorner 8
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam ArrowColor #455A64
+skinparam PackageBorderColor #607D8B
+skinparam PackageBackgroundColor #F7FAFC
+skinparam ClassBorderColor #455A64
+skinparam ClassBackgroundColor #FFFFFF
+skinparam EnumBorderColor #455A64
+skinparam EnumBackgroundColor #FFFDF7
+
+package "flc.model" {
+  class Member {
+    - memberId: String
+    - name: String
+    - bookings: List<Booking>
+    + getMemberId(): String
+    + getName(): String
+    + getBookings(): List<Booking>
+    + hasBookingFor(lesson: Lesson): boolean
+  }
+
+  enum ExerciseType {
+    YOGA
+    ZUMBA
+    AQUACISE
+    BOX_FIT
+    BODY_BLITZ
+    + getName(): String
+    + getPrice(): double
+  }
+
+  enum Day {
+    SATURDAY
+    SUNDAY
+  }
+
+  enum TimeSlot {
+    MORNING
+    AFTERNOON
+    EVENING
+  }
+
+  enum BookingStatus {
+    BOOKED
+    ATTENDED
+    CHANGED
+    CANCELLED
+  }
+
+  class Review {
+    - text: String
+    - rating: int
+    + getText(): String
+    + getRating(): int
+  }
+
+  class Lesson {
+    - lessonId: String
+    - exerciseType: ExerciseType
+    - day: Day
+    - timeSlot: TimeSlot
+    - weekNumber: int
+    - month: int
+    - capacity: int
+    - bookings: List<Booking>
+    + getLessonId(): String
+    + getExerciseType(): ExerciseType
+    + getDay(): Day
+    + getTimeSlot(): TimeSlot
+    + getWeekNumber(): int
+    + getMonth(): int
+    + getCapacity(): int
+    + getBookings(): List<Booking>
+    + getAvailableSpots(): int
+    + isFull(): boolean
+    + getAttendedCount(): int
+    + getAverageRating(): double
+    + getIncome(): double
+  }
+
+  class Booking {
+    - bookingId: String
+    - member: Member
+    - lesson: Lesson
+    - status: BookingStatus
+    - review: Review
+    + getBookingId(): String
+    + getMember(): Member
+    + getLesson(): Lesson
+    + getStatus(): BookingStatus
+    + getReview(): Review
+    + attend(reviewText: String, rating: int): void
+    + cancel(): void
+    + changeTo(newLesson: Lesson): void
+  }
+
+  class Timetable {
+    - lessons: List<Lesson>
+    + getLessons(): List<Lesson>
+    + getLessonsByDay(day: Day): List<Lesson>
+    + getLessonsByExercise(exerciseName: String): List<Lesson>
+    + getLessonsByMonth(month: int): List<Lesson>
+  }
+}
+
+package "flc.system" {
+  class FLCSystem {
+    - timetable: Timetable
+    - members: List<Member>
+    - bookings: List<Booking>
+    - bookingIdCounter: int
+    + getTimetable(): Timetable
+    + getMembers(): List<Member>
+    + getBookings(): List<Booking>
+    + findMemberById(memberId: String): Member
+    + findLessonById(lessonId: String): Lesson
+    + findBookingById(bookingId: String): Booking
+    + getTimetableByDay(day: Day): List<Lesson>
+    + getTimetableByExercise(exerciseName: String): List<Lesson>
+    + bookLesson(memberId: String, lessonId: String): Booking
+    + changeBooking(bookingId: String, newLessonId: String): Booking
+    + cancelBooking(bookingId: String): boolean
+    + attendLesson(bookingId: String, reviewText: String, rating: int): boolean
+  }
+}
+
+package "flc.report" {
+  class ReportGenerator {
+    - system: FLCSystem
+    + printMonthlyLessonReport(month: int): void
+    + printChampionReport(month: int): void
+  }
+}
+
+package "flc.data" {
+  class TimetableData {
+    + buildTimetable(): Timetable
+  }
+
+  class MemberData {
+    + buildMembers(): List<Member>
+  }
+
+  class DataSeeder {
+    + seed(system: FLCSystem): void
+  }
+}
+
+package "flc.cli" {
+  class Main {
+    - system: FLCSystem
+    - reportGenerator: ReportGenerator
+    - scanner: Scanner
+    + main(args: String[]): void
+  }
+}
+
+FLCSystem *-- "1" Timetable
+FLCSystem *-- "0..*" Member
+FLCSystem *-- "0..*" Booking
+Timetable *-- "0..*" Lesson
+Member "1" -- "0..*" Booking
+Lesson "1" -- "0..*" Booking
+Booking o-- "0..1" Review
+
+Lesson --> ExerciseType
+Lesson --> Day
+Lesson --> TimeSlot
+Booking --> BookingStatus
+
+ReportGenerator --> FLCSystem
+Main --> FLCSystem
+Main --> ReportGenerator
+Main ..> DataSeeder
+
+FLCSystem ..> TimetableData
+FLCSystem ..> MemberData
+DataSeeder ..> FLCSystem
+TimetableData ..> Timetable
+MemberData ..> Member
+
+@enduml
